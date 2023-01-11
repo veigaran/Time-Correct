@@ -180,15 +180,35 @@ def extract_time(test_str):
             year = time_info[0]
             result.append([year, month, day])
         elif test_str == "暂无数据":
-            error.append(test_str)
+            result.append([0, 0, 0])
+            # error.append(test_str)
         elif len(test_str) == 4 and test_str.isdigit() and int(test_str)>1900 and int(test_str)<2100:
             result.append([test_str, "01", "01"])
-
+        else:
+            error.append(test_str)
     print(result)
+    return result, error
     # print(error)
 
 
 if __name__ == '__main__':
+    df = pd.read_csv("data/time_correct.csv")
+    total = []
+    totol_error = []
+    for index, row in df.iterrows():
+        # print(row["time"])
+        try:
+            result, error = extract_time(row["time"])
+            total.extend(result)
+            totol_error.extend(error)
+        except:
+            continue
+    df1 = pd.DataFrame(total, columns=["year", "month", "day"])
+    df1.to_csv("data/time_correct_result.csv", index=False)
+    df2 = pd.DataFrame(totol_error, columns=["error"])
+    df2.to_csv("data/time_correct_error.csv", index=False)
+
+
     # test_1()
     # test_2("data/think_tank_base.csv")
     # extract_time("hhhhh 你啊后 17 September 201asccdcd  (10 January 2019)Julkaistu18.08.2011")
@@ -207,7 +227,7 @@ if __name__ == '__main__':
     # extract_time("September 2005 ")
     # extract_time("和February, 2020")
     # extract_time("02/2019")
-    extract_time("07/30/2014")
-    extract_time("14.01.2005")
+    # extract_time("07/30/2014")
+    # extract_time("14.01.2005")
     # extract_time("2018-02")
     # extract_time("2018")
