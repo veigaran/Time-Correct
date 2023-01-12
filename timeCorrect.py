@@ -31,11 +31,11 @@ DAY = {"1st": 1, "2nd": 2, "3rd": 3, "4th": 4, "5th": 5, "6th": 6, "7th": 7, "8t
 
 class ThinkTankDB:
     def __init__(self, host, user, password, database):
-        self.db = pymysql.connect(host='199.247.17.170',
+        self.db = pymysql.connect(host='',
                                   port=3306,
                                   user='admin',
-                                  password='dl4nlp748620',
-                                  db='think_tank',
+                                  password='',
+                                  db='',
                                   charset='utf8')
 
     def get_data(self, sql):
