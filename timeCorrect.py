@@ -15,32 +15,6 @@ DAY = {"1st": 1, "2nd": 2, "3rd": 3, "4th": 4, "5th": 5, "6th": 6, "7th": 7, "8t
        "30th": 30, "31st": 31}
 
 
-def test_2(path):
-    df = pd.read_csv(path)
-    print(df.head())
-    df1 = df[['time', 'resource']]
-    # df1.to_csv("data/time_correct.csv",index=False)
-    # df1.to_excel("data/time_correct.xlsx",index=False)
-
-    grouped = df.groupby('resource')
-    # time_dict ={}
-    result = []
-    for name, group in grouped:
-        i = 0
-        for index, row in group.iterrows():
-            if i < 5:
-                result.append([row['time'], name])
-                i += 1
-            else:
-                break
-        # result.append([name,group['time'].values])
-        # time_dict[name] = group['time'].tolist()
-        # print(str(name)+"："+str(len(group['time'].tolist())))
-    df2 = pd.DataFrame(result, columns=['time', 'resource'])
-    # df2.to_csv("data/sample.csv",index=False)
-    df2.to_excel("data/sample.xlsx", index=False)
-
-
 def extract_time(test_str):
     # 针对 " 17 September 2018 asccdcd  (10 January 2019) " 这种情况
     pattern1 = r'[0-9]+\W[a-zA-z]+\W[0-9]{4}'
@@ -146,48 +120,21 @@ def extract_time(test_str):
 
 
 def get_time_api(origin_time):
-    return extract_time(origin_time)[4]
-
-
-def change_origin_data(path):
-    df = pd.read_csv(path)
-    time_new = []
-    for index, row in df.iterrows():
-        result, error = extract_time(row["time"])
-        # print(result)
-        time_new.append(result[4])
-    print("时间处理完成")
-    df['time_new'] = time_new
-    df1 = df.iloc[:10]
-    df1.to_csv("test.csv", index=False)
-    df.to_csv("total.csv", index=False)
-    df.to_excel("total.xlsx", index=False)
-
-    # df1.to_excel("time_correct_total.xlsx", index=False)
-
-
-def main():
-    df = pd.read_csv("data/time_correct.csv")
-    total = []
-    totol_error = []
-    for index, row in df.iterrows():
-        result, error = extract_time(row["time"])
-        total.extend(result)
-        totol_error.extend(error)
-    df1 = pd.DataFrame(total, columns=["year", "month", "day", "origin", "datetime"])
-    df1.to_csv("data/time_correct_result.csv", index=False)
-    df1.to_excel("data/time_correct_result.xlsx", index=False)
-    df2 = pd.DataFrame(totol_error, columns=["error"])
-    df2.to_csv("data/time_correct_error.csv", index=False)
-    df2.to_excel("data/time_correct_error.xlsx", index=False)
+    res,error = extract_time(origin_time)
+    return res[4]
 
 
 if __name__ == '__main__':
-    a, b = extract_time("暂无数据")
-    print(a)
+    print(get_time_api("17 May 2022"))
+    print(get_time_api("2022-02-09"))
+    print(get_time_api("27.10.2007"))
+    print(get_time_api("September 2005"))
+    print(get_time_api("February, 2020"))
     # main()
     # change_origin_data("data/think_tank_base.csv")
     # test_1()
     # test_2("data/think_tank_base.csv")
-    df = pd.read_csv("data/think_tank_base.csv")
-    print(len(df))
+    # df = pd.read_csv("data/think_tank_base.csv")
+    # print(len(df))
+    # a, b = extract_time("暂无数据")
+    # print(a)
