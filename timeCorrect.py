@@ -1,19 +1,9 @@
 """
 用于纠正错误时间，统一为一种格式
-https://github.com/fighting41love/cocoNLP
-https://github.com/paulrinckens/timexy
-把time一栏的数据全部转化为标准格式
-
-大致思路：
-1、时间归一化
-2、数据库链接及校对
-3、单独数据处理接口
-
 """
 import re
 import pandas as pd
 from datetime import datetime
-
 
 MONTH = {"January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6,
          "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12,
@@ -23,7 +13,6 @@ DAY = {"1st": 1, "2nd": 2, "3rd": 3, "4th": 4, "5th": 5, "6th": 6, "7th": 7, "8t
        "12th": 12, "13th": 13, "14th": 14, "15th": 15, "16th": 16, "17th": 17, "18th": 18, "19th": 19, "20th": 20,
        "21st": 21, "22nd": 22, "23rd": 23, "24th": 24, "25th": 25, "26th": 26, "27th": 27, "28th": 28, "29th": 29,
        "30th": 30, "31st": 31}
-
 
 
 def test_2(path):
@@ -80,46 +69,45 @@ def extract_time(test_str):
             day = time_info[0]
             month = MONTH[time_info[1]]
             year = time_info[2]
-            result.append([year, month, day])
+            result = [year, month, day]
         elif test_str[:5] == "WIDER" and re.search(r'[0-9]{4}', test_str):
             year = re.search(r'[0-9]{4}', test_str).group()
-            result.append([year, "01", "01"])
+            result = [year, "01", "01"]
         elif re.search(pattern2, test_str):
             s = re.search(pattern2, test_str).group()
             time_info = s.split(".")
             day = time_info[0]
             month = time_info[1]
             year = time_info[2]
-            result.append([year, month, day])
+            result = [year, month, day]
         elif re.search(pattern8, test_str):
             s = re.search(pattern8, test_str).group()
             time_info = s.split("/")
             day = time_info[1]
             month = time_info[0]
             year = time_info[2]
-            result.append([year, month, day])
+            result = [year, month, day]
         elif re.search(pattern3, test_str):
             s = re.search(pattern3, test_str).group()
             time_info = s.split(" ")
             day = time_info[1].replace(",", "").replace("th", "").replace("st", "").replace("nd", "").replace("rd", "")
             month = MONTH[time_info[0]]
             year = time_info[2]
-            result.append([year, month, day])
+            result = [year, month, day]
         elif re.search(pattern4, test_str):
             s = re.search(pattern4, test_str).group()
             time_info = s.split("-")
             day = time_info[2]
             month = time_info[1]
             year = time_info[0]
-            result.append([year, month, day])
+            result = [year, month, day]
         elif re.search(pattern5, test_str):
             s = re.search(pattern5, test_str).group()
             time_info = s.split(".")
             day = time_info[0]
             month = time_info[1]
             year = time_info[2]
-            result.append([year, month, day])
-
+            result = [year, month, day]
         else:
             if re.search(pattern6, test_str):
                 s = re.search(pattern6, test_str).group()
@@ -127,34 +115,55 @@ def extract_time(test_str):
                 day = "01"
                 month = MONTH[time_info[0].replace(",", "")]
                 year = time_info[1]
-                result.append([year, month, day])
+                result = [year, month, day]
             elif re.search(pattern7, test_str):
                 s = re.search(pattern7, test_str).group()
                 time_info = s.split("/")
                 day = "01"
                 month = time_info[0]
                 year = time_info[1]
-                result.append([year, month, day])
+                result = [year, month, day]
             elif re.search(pattern9, test_str):
                 s = re.search(pattern9, test_str).group()
                 time_info = s.split("-")
                 day = "01"
                 month = time_info[1]
                 year = time_info[0]
-                result.append([year, month, day])
+                result = [year, month, day]
             elif test_str == "暂无数据":
-                result.append([1, 1, 1])
+                result = [1000, 1, 1]
             elif 1900 < int(test_str) < 2100:
-                result.append([int(test_str), "01", "01"])
+                result = [int(test_str), "01", "01"]
             else:
                 error.append(test_str)
-        if len(result[0]) > 2:
-            result[0].append(test_str)
-            result[0].append(str(datetime(int(result[0][0]), int(result[0][1]), int(result[0][2]))))
+        if len(result) > 2:
+            result.append(test_str)
+            result.append(str(datetime(int(result[0]), int(result[1]), int(result[2]))))
     except Exception as e:
-        result.append([1, 1, 1, test_str, str(datetime(1, 1, 1))])
+        result = [1, 1, 1, test_str, str(datetime(1000, 1, 1))]
         error.append(test_str)
     return result, error
+
+
+def get_time_api(origin_time):
+    return extract_time(origin_time)[4]
+
+
+def change_origin_data(path):
+    df = pd.read_csv(path)
+    time_new = []
+    for index, row in df.iterrows():
+        result, error = extract_time(row["time"])
+        # print(result)
+        time_new.append(result[4])
+    print("时间处理完成")
+    df['time_new'] = time_new
+    df1 = df.iloc[:10]
+    df1.to_csv("test.csv", index=False)
+    df.to_csv("total.csv", index=False)
+    df.to_excel("total.xlsx", index=False)
+
+    # df1.to_excel("time_correct_total.xlsx", index=False)
 
 
 def main():
@@ -176,7 +185,9 @@ def main():
 if __name__ == '__main__':
     a, b = extract_time("暂无数据")
     print(a)
-    main()
-
+    # main()
+    # change_origin_data("data/think_tank_base.csv")
     # test_1()
     # test_2("data/think_tank_base.csv")
+    df = pd.read_csv("data/think_tank_base.csv")
+    print(len(df))
